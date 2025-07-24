@@ -5,7 +5,9 @@ from ..models import models, schemas
 
 def create(db: Session, recipe):
     db_recipe = models.Recipe(
-        amount=recipe.amount
+        amount=recipe.amount,
+        sandwich_id = recipe.sandwich_id,
+        resource_id = recipe.resource_id
     )
     db.add(db_recipe)
     db.commit()
