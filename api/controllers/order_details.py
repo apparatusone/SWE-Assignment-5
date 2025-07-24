@@ -5,7 +5,6 @@ from ..models import models, schemas
 
 def create(db: Session, order_details):
     db_order_details = models.OrderDetail(
-        itme=order_details.itme,
         amount=order_details.amount
     )
     db.add(db_order_details)
