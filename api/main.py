@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 
 from .models import models, schemas
-from .controllers import orders, resources, order_details, recipes
+from .controllers import orders, resources, order_details, recipes, sandwiches
 from .dependencies.database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
@@ -109,13 +109,15 @@ def read_one_order_detail(order_details_id: int, db: Session = Depends(get_db)):
 
 @app.put("/order_details/{order_details_id}", response_model=schemas.OrderDetail, tags=["OrderDetails"])
 def update_order_detail(order_details_id: int, order_details_in: schemas.OrderDetailUpdate, db: Session = Depends(get_db)):
-    if order_details.read_one(db, order_details_id=order_details_id) is None:
+    order_details_db = order_details.read_one(db, order_details_id=order_details_id)
+    if order_details_db is None:
         raise HTTPException(status_code=404, detail="OrderDetail not found")
     return order_details.update(db=db, order_details_id=order_details_id, order_details=order_details_in)
 
 @app.delete("/order_details/{order_details_id}", tags=["OrderDetails"])
 def delete_order_detail(order_details_id: int, db: Session = Depends(get_db)):
-    if order_details.read_one(db, order_details_id=order_details_id) is None:
+    order_details_db = order_details.read_one(db, order_details_id=order_details_id)
+    if order_details_db is None:
         raise HTTPException(status_code=404, detail="OrderDetail not found")
     return order_details.delete(db=db, order_details_id=order_details_id)
 
@@ -123,7 +125,7 @@ def delete_order_detail(order_details_id: int, db: Session = Depends(get_db)):
 # Recipes
 @app.post("/recipes/", response_model=schemas.Recipe, tags=["Recipes"])
 def create_recipe(recipe: schemas.RecipeCreate, db: Session = Depends(get_db)):
-    return recipes.create(db=db, recipe_details=recipe)
+    return recipes.create(db=db, recipe=recipe)
 
 
 @app.get("/recipes/", response_model=list[schemas.Recipe], tags=["Recipes"])
@@ -133,23 +135,58 @@ def read_recipes(db: Session = Depends(get_db)):
 
 @app.get("/recipes/{recipe_id}", response_model=schemas.Recipe, tags=["Recipes"])
 def read_one_recipe(recipe_id: int, db: Session = Depends(get_db)):
-    recipe_detail = recipes.read_one(db, recipe_details_id=recipe_id)
-    if recipe_detail is None:
+    recipe = recipes.read_one(db, recipe_id=recipe_id)
+    if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    return recipe_detail
+    return recipe
 
 
 @app.put("/recipes/{recipe_id}", response_model=schemas.Recipe, tags=["Recipes"])
 def update_one_recipe(recipe_id: int, recipe: schemas.RecipeUpdate, db: Session = Depends(get_db)):
-    existing = recipes.read_one(db, recipe_details_id=recipe_id)
-    if existing is None:
+    recipe = recipes.read_one(db, recipe_id=recipe_id)
+    if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    return recipes.update(db=db, recipe_details_id=recipe_id, recipe_details=recipe)
+    return recipes.update(db=db, recipe_id=recipe_id, recipe=recipe)
 
 
 @app.delete("/recipes/{recipe_id}", tags=["Recipes"])
 def delete_one_recipe(recipe_id: int, db: Session = Depends(get_db)):
-    existing = recipes.read_one(db, recipe_details_id=recipe_id)
-    if existing is None:
+    recipe = recipes.read_one(db, recipe_id=recipe_id)
+    if recipe is None:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    return recipes.delete(db=db, recipe_details_id=recipe_id)
+    return recipes.delete(db=db, recipe_id=recipe_id)
+
+
+# Sandwiches
+@app.post("/sandwiches/", response_model=schemas.Sandwich, tags=["Sandwiches"])
+def create_sandwich(sandwich: schemas.SandwichCreate, db: Session = Depends(get_db)):
+    return sandwiches.create(db=db, sandwich=sandwich)
+
+
+@app.get("/sandwiches/", response_model=list[schemas.Sandwich], tags=["Sandwiches"])
+def read_sandwiches(db: Session = Depends(get_db)):
+    return sandwiches.read_all(db)
+
+
+@app.get("/sandwiches/{sandwich_id}", response_model=schemas.Sandwich, tags=["Sandwiches"])
+def read_one_sandwich(sandwich_id: int, db: Session = Depends(get_db)):
+    sandwich = sandwiches.read_one(db, sandwich_id=sandwich_id)
+    if sandwich is None:
+        raise HTTPException(status_code=404, detail="Sandwich not found")
+    return sandwich
+
+
+@app.put("/sandwiches/{sandwich_id}", response_model=schemas.Sandwich, tags=["Sandwiches"])
+def update_one_sandwich(sandwich_id: int, sandwich: schemas.SandwichUpdate, db: Session = Depends(get_db)):
+    sandwich = sandwiches.read_one(db, sandwich_id=sandwich_id)
+    if sandwich is None:
+        raise HTTPException(status_code=404, detail="Sandwich not found")
+    return recipes.update(db=db, sandwich_id=sandwich_id, sandwich=sandwich)
+
+
+@app.delete("/sandwiches/{sandwich_id}", tags=["Sandwiches"])
+def delete_one_sandwich(sandwich_id: int, db: Session = Depends(get_db)):
+    sandwich = sandwiches.read_one(db, sandwich_id=sandwich_id)
+    if sandwich is None:
+        raise HTTPException(status_code=404, detail="Sandwich not found")
+    return sandwiches.delete(db=db, sandwich_id=sandwich_id)
